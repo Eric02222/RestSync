@@ -1,16 +1,20 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import Navbar from './components/Navbar/Navbar'
 import { createBrowserRouter, RouterProvider } from 'react-router'
+import Layout from './layout/Layout.jsx'
 import Error from './pages/Error.jsx'
 import { AuthProvider } from './context/context.jsx'
+import { ToastContainer } from 'react-toastify';
+import Cadastro from './pages/Cadastro/Cadastro.jsx'
+
 
 const router = createBrowserRouter([
   {
-    element: <Navbar/>,
+    element: <Layout/>,
     children: [
-      {path: '*', element: <Error/>}
+      { path: '/cadastro', element: <Cadastro /> },
+      { path: '*', element: <Error /> }
     ]
   }
 ])
@@ -18,7 +22,14 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router}/>
+      <RouterProvider router={router} />
+      <ToastContainer
+        autoClose={4000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover={false} />
     </AuthProvider>
   </StrictMode>,
 )
