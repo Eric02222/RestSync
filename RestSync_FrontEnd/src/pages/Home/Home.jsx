@@ -96,8 +96,7 @@ const Home = () => {
 
       {/* Footer */}
       <footer className="w-full max-w-7xl mx-auto px-6 py-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 space-y-2 sm:space-y-0">
-        <p>© {new Date().getFullYear()} RestSync. Desenvolvido para fins de apresentação acadêmica.</p>
-        <p>RestSync Front-End MVP • Apple Health inspired</p>
+        <p>© {new Date().getFullYear()} RestSync. Desenvolvido para o Hackaton 2026 - SENAI.</p>
       </footer>
     </div>
   );
