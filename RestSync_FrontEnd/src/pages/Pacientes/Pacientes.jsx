@@ -35,6 +35,13 @@ const Pacientes = () => {
   const [telefone, setTelefone] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const formatCpf = (rawCpf) => {
+    if (!rawCpf) return '';
+    const str = String(rawCpf).replace(/\D/g, '');
+    if (str.length !== 11) return str;
+    return str.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  };
+
   const openAddModal = () => {
     setIsEditMode(false);
     setEditingId(null);
@@ -49,7 +56,7 @@ const Pacientes = () => {
     setIsEditMode(true);
     setEditingId(paciente.id);
     setNome(paciente.nome);
-    setCpf(paciente.cpf);
+    setCpf(formatCpf(paciente.cpf));
     setEndereco(paciente.endereco);
     setTelefone(paciente.telefone);
     setShowModal(true);
@@ -191,7 +198,7 @@ const Pacientes = () => {
               <div className="space-y-2 border-t border-slate-100 pt-4 text-xs font-semibold text-slate-600">
                 <div className="flex items-center">
                   <CreditCard className="h-3.5 w-3.5 mr-2 text-slate-400" />
-                  <span>CPF: {paciente.cpf}</span>
+                  <span>CPF: {formatCpf(paciente.cpf)}</span>
                 </div>
                 <div className="flex items-center">
                   <Phone className="h-3.5 w-3.5 mr-2 text-slate-400" />

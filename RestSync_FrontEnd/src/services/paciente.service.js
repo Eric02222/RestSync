@@ -9,13 +9,23 @@ export const pacienteService = {
 
   async createPaciente(pacienteData) {
     // fields: nome, cpf, endereco, telefone, dados_vitais
-    const response = await api.post('/pacientes', pacienteData);
+    // Sanitize CPF by removing dots and dashes to avoid MySQL BIGINT insertion error (500)
+    const sanitizedCpf = pacienteData.cpf ? pacienteData.cpf.replace(/\D/g, '') : '';
+    const response = await api.post('/pacientes', {
+      ...pacienteData,
+      cpf: sanitizedCpf
+    });
     return response.data;
   },
 
   async editPaciente(id, pacienteData) {
     // fields: nome, cpf, endereco, telefone, dados_vitais
-    const response = await api.put(`/pacientes/${id}`, pacienteData);
+    // Sanitize CPF by removing dots and dashes to avoid MySQL BIGINT insertion error (500)
+    const sanitizedCpf = pacienteData.cpf ? pacienteData.cpf.replace(/\D/g, '') : '';
+    const response = await api.put(`/pacientes/${id}`, {
+      ...pacienteData,
+      cpf: sanitizedCpf
+    });
     return response.data;
   }
 };
