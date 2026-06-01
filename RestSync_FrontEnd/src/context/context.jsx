@@ -1,41 +1,48 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { authService } from "../services/auth.service";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const carregarUsuarioArmazenado = () => {
-      const storedUser = localStorage.getItem("user");
-
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-        } catch (error) {
-          console.error("Erro ao ler dados do usuário:", error);
-          localStorage.removeItem("user");
-        }
+    const initAuth = () => {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
       }
+      setLoading(false);
     };
-    carregarUsuarioArmazenado();
+
+    initAuth();
+
+    // Listen to unauthorized events from api interceptor
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+
+    window.addEventListener('auth-unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('auth-unauthorized', handleUnauthorized);
+    };
   }, []);
 
-  const login = (userData) => {
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
+  const login = async (email, senha) => {
+    const result = await authService.login(email, senha);
+    setUser(result.user);
+    return result;
   };
 
-  const logout = () => {
-    alert("Voce saiu de sua conta");
-    localStorage.removeItem("user");
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, setUser, login, logout, isAuthenticated: !!user, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

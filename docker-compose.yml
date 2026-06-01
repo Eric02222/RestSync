@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: restsync_db_container
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: milionario
+      MYSQL_DATABASE: restsync_db
+    volumes:
+      - db_data:/var/lib/mysql
+      # Mount our fixed init schema & test account seeds
+      - ./RestSync_BackEnd/src/config/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pmilionario"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./RestSync_BackEnd
+    container_name: restsync_backend_container
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: milionario
+      DB_DATABASE: restsync_db
+      JWT_SECRET: milionario_rico
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./RestSync_FrontEnd
+      args:
+        - VITE_API_URL=http://localhost:8000
+    container_name: restsync_frontend_container
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
