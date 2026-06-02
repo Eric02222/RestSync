@@ -5,6 +5,7 @@ import loginRouter from './router/login.route.js';
 import pacienteRouter from './router/paciente.route.js';
 import dadosVitaisRouter from './router/dadosVitais.route.js';
 import vinculoRouter from './router/vinculo.route.js';
+import auditoriaRouter from './router/auditoria.route.js';
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use('/usuarios', userRouter);
 app.use('/auth', loginRouter);
 app.use('/pacientes', pacienteRouter);
 app.use('/vinculos', vinculoRouter);
+app.use('/auditoria', auditoriaRouter);
 app.use('/', dadosVitaisRouter);
 
 

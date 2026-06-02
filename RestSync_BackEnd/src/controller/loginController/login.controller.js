@@ -1,6 +1,7 @@
 import { db } from '../../config/db.js'; 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { getClientIp, obterEmailUsuario, registrarAuditoria } from '../../services/auditoria.service.js';
 
 const login = async (req, res) => {
     try {
@@ -35,6 +36,14 @@ const login = async (req, res) => {
             { expiresIn: "8h" }
         );
 
+        await registrarAuditoria({
+            usuarioId: usuario.id,
+            usuarioEmail: usuario.email,
+            tipo: 'login',
+            descricao: 'Login realizado com sucesso',
+            ip: getClientIp(req),
+        });
+
         return res.json({
             message: "Login realizado com sucesso.",
             token,
@@ -53,6 +62,16 @@ const login = async (req, res) => {
 };
 
 const logout = async (req, res) => {
+    if (req.user?.id) {
+        const email = await obterEmailUsuario(req.user.id);
+        await registrarAuditoria({
+            usuarioId: req.user.id,
+            usuarioEmail: email,
+            tipo: 'logout',
+            descricao: 'Sessão encerrada',
+            ip: getClientIp(req),
+        });
+    }
     return res.status(200).json({ message: "Logout realizado com sucesso" });
 };
 

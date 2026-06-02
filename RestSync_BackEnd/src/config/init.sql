@@ -47,6 +47,17 @@ CREATE TABLE IF NOT EXISTS `restsync_db`.`historico_dados_vitais` (
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `restsync_db`.`auditoria` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `usuario_id` INT NULL,
+  `usuario_email` VARCHAR(100) NULL,
+  `tipo` VARCHAR(50) NOT NULL,
+  `descricao` TEXT NOT NULL,
+  `ip` VARCHAR(45) NULL,
+  `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS `restsync_db`.`vinculo_usuario_paciente` (
   `paciente_id` INT NOT NULL,
   `usuario_id` INT NOT NULL,
@@ -81,6 +92,9 @@ INSERT IGNORE INTO `historico_dados_vitais` (`id`, `frequencia_cardiaca`, `press
 (3, 85, '125/84', 36.8, CURDATE(), '10:00:00', 1),
 (4, 98, '130/85', 37.3, CURDATE(), '11:00:00', 1),
 (5, 76, '120/80', 36.5, CURDATE(), '12:00:00', 1);
+
+-- Vínculo demo: familiar Mariana (id 3) ↔ residente Geraldo (id 1)
+INSERT IGNORE INTO `vinculo_usuario_paciente` (`paciente_id`, `usuario_id`) VALUES (1, 3);
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

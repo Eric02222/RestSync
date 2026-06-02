@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/context';
 import { usePacientes } from '../../hooks/usePacientes';
 import { useVitals } from '../../hooks/useVitals';
 import { 
@@ -16,6 +17,7 @@ import VitalsChart from '../../components/charts/VitalsChart';
 import Badge from '../../components/ui/Badge';
 
 const Historico = () => {
+  const { user } = useAuth();
   const { pacientes, loading: loadingPacientes } = usePacientes();
   const [selectedPacienteId, setSelectedPacienteId] = useState('');
   
@@ -86,7 +88,11 @@ const Historico = () => {
         <div className="bg-white/70 border border-slate-200/80 rounded-2xl p-12 text-center shadow-sm">
           <History className="h-10 w-10 text-slate-400 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-slate-700">Sem registros de histórico</h3>
-          <p className="text-xs text-slate-400 mt-1">Cadastre residentes no sistema para visualizar os relatórios e tabelas clínicas.</p>
+          <p className="text-xs text-slate-400 mt-1">
+            {user?.tipo_usuario === 'familiar'
+              ? 'Nenhum residente vinculado à sua conta. Solicite o acesso à equipe da casa de repouso.'
+              : 'Cadastre residentes no sistema para visualizar os relatórios e tabelas clínicas.'}
+          </p>
         </div>
       ) : !selectedPacienteId ? (
         <div className="flex justify-center items-center h-48">

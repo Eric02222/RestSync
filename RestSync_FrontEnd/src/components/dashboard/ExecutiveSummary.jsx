@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { vitalsService } from '../../services/vitals.service';
+import { getHeartRateStatus, getTemperatureStatus } from '../../utils/vitalsRules';
+import { VITALS_UPDATED_EVENT } from '../../utils/vitalsEvents';
 import {
   Users,
   Activity,
@@ -10,23 +12,8 @@ import {
   XCircle,
 } from 'lucide-react';
 
-const getHeartRateStatus = (fc) => {
-  if (!fc) return 'normal';
-  if (fc > 120 || fc < 50) return 'critical';
-  if (fc >= 90 || fc <= 55) return 'attention';
-  return 'normal';
-};
-
-const getTemperatureStatus = (temp) => {
-  if (!temp) return 'normal';
-  const t = parseFloat(temp);
-  if (t >= 38.0 || t <= 35.0) return 'critical';
-  if (t >= 37.2) return 'attention';
-  return 'normal';
-};
-
 const getResidenteStatus = (historico) => {
-  if (!historico || historico.length === 0) return 'normal';
+  if (!historico || historico.length === 0) return 'sem-dados';
   const latest = historico[0];
   const fcStatus = getHeartRateStatus(latest.frequencia_cardiaca);
   const tempStatus = getTemperatureStatus(latest.temperatura);
@@ -40,28 +27,35 @@ const ExecutiveSummary = ({ pacientes }) => {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
 
-  useEffect(() => {
-    const fetchAllVitals = async () => {
-      if (!pacientes || pacientes.length === 0) {
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      const results = [];
-      for (const p of pacientes) {
-        try {
-          const hist = await vitalsService.getHistorico(p.id);
-          results.push({ id: p.id, nome: p.nome, status: getResidenteStatus(hist) });
-        } catch {
-          results.push({ id: p.id, nome: p.nome, status: 'normal' });
-        }
-      }
-      setResidenteStatus(results);
-      setLastUpdate(new Date());
+  const fetchAllVitals = useCallback(async () => {
+    if (!pacientes || pacientes.length === 0) {
+      setResidenteStatus([]);
       setLoading(false);
-    };
-    fetchAllVitals();
+      return;
+    }
+    setLoading(true);
+    const results = [];
+    for (const p of pacientes) {
+      try {
+        const hist = await vitalsService.getHistorico(p.id);
+        results.push({ id: p.id, nome: p.nome, status: getResidenteStatus(hist) });
+      } catch {
+        results.push({ id: p.id, nome: p.nome, status: 'sem-dados' });
+      }
+    }
+    setResidenteStatus(results);
+    setLastUpdate(new Date());
+    setLoading(false);
   }, [pacientes]);
+
+  useEffect(() => {
+    fetchAllVitals();
+  }, [fetchAllVitals]);
+
+  useEffect(() => {
+    window.addEventListener(VITALS_UPDATED_EVENT, fetchAllVitals);
+    return () => window.removeEventListener(VITALS_UPDATED_EVENT, fetchAllVitals);
+  }, [fetchAllVitals]);
 
   const total = pacientes?.length || 0;
   const estaveis = residenteStatus.filter((r) => r.status === 'normal').length;
@@ -112,7 +106,6 @@ const ExecutiveSummary = ({ pacientes }) => {
 
   return (
     <div className="space-y-4">
-      {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((m) => {
           const Icon = m.icon;
@@ -132,7 +125,6 @@ const ExecutiveSummary = ({ pacientes }) => {
         })}
       </div>
 
-      {/* Status Cards Row */}
       {total > 0 && (
         <div className="grid grid-cols-3 gap-4">
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
@@ -141,7 +133,7 @@ const ExecutiveSummary = ({ pacientes }) => {
             </div>
             <div>
               <p className="text-2xl font-extrabold text-emerald-700">{loading ? '—' : estaveis}</p>
-              <p className="text-[10px] font-bold text-emerald-600 mt-0.5">🟢 Estáveis</p>
+              <p className="text-[10px] font-bold text-emerald-600 mt-0.5">Estáveis</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-100">
@@ -150,7 +142,7 @@ const ExecutiveSummary = ({ pacientes }) => {
             </div>
             <div>
               <p className="text-2xl font-extrabold text-amber-700">{loading ? '—' : observacao}</p>
-              <p className="text-[10px] font-bold text-amber-600 mt-0.5">🟡 Em Observação</p>
+              <p className="text-[10px] font-bold text-amber-600 mt-0.5">Em Observação</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-100">
@@ -159,7 +151,7 @@ const ExecutiveSummary = ({ pacientes }) => {
             </div>
             <div>
               <p className="text-2xl font-extrabold text-red-700">{loading ? '—' : criticos}</p>
-              <p className="text-[10px] font-bold text-red-600 mt-0.5">🔴 Críticos</p>
+              <p className="text-[10px] font-bold text-red-600 mt-0.5">Críticos</p>
             </div>
           </div>
         </div>

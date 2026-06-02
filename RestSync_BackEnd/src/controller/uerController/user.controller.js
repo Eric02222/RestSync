@@ -1,5 +1,17 @@
 import bcrypt from 'bcrypt';
 import { db } from '../../config/db.js';
+import { getClientIp, obterEmailUsuario, registrarAuditoria } from '../../services/auditoria.service.js';
+
+async function registrarAcaoUsuario(req, tipo, descricao) {
+    const email = await obterEmailUsuario(req.user?.id);
+    await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioEmail: email,
+        tipo,
+        descricao,
+        ip: getClientIp(req),
+    });
+}
 
 export const createUser = async (req, res) => {
     
@@ -23,6 +35,9 @@ export const createUser = async (req, res) => {
             return res.status(400).json({ message: "Tipo de usuário inválido." });
         }
 
+        if (req.user.tipo_usuario === 'medico' && tipoFormatado === 'admin') {
+            return res.status(403).json({ message: "Apenas administradores podem criar contas admin." });
+        }
 
         const saltRounds = 10;
         const hashPassword = await bcrypt.hash(senha, saltRounds);
@@ -36,6 +51,8 @@ export const createUser = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(400).json({ message: "Não foi possível criar o usuário." });
         }
+
+        await registrarAcaoUsuario(req, 'cadastro_usuario', `Usuário "${email}" cadastrado`);
 
         return res.status(201).json({ message: "Usuário criado com sucesso." });
     } catch (error) {
@@ -63,6 +80,14 @@ export const getUser = async (req, res) => {
 export const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
+        const targetId = parseInt(id, 10);
+        const requesterId = req.user.id;
+        const role = req.user.tipo_usuario;
+
+        if (role !== 'admin' && role !== 'medico' && requesterId !== targetId) {
+            return res.status(403).json({ message: "Acesso negado." });
+        }
+
         const [result] = await db.query(
             "SELECT id, nome, email, cpf, tipo_usuario, crm FROM usuario WHERE id = ?",
             [id]
@@ -88,9 +113,27 @@ export const editUser = async (req, res) => {
             return res.status(400).json({ message: "Campos obrigatórios: id, nome e email." });
         }
 
-        const tipoFormatado = tipo_usuario ? tipo_usuario.toLowerCase() : null;
+        const targetId = parseInt(id, 10);
+        const isAdmin = req.user.tipo_usuario === 'admin';
+        const isSelf = req.user.id === targetId;
 
-        // Build dynamic update to allow partial edits (e.g. self-profile without changing role)
+        if (!isAdmin && !isSelf) {
+            return res.status(403).json({ message: "Você só pode editar seu próprio perfil." });
+        }
+
+        let tipoFormatado = null;
+        if (tipo_usuario) {
+            const tipo = tipo_usuario.toLowerCase();
+            const tiposValidos = ['medico', 'admin', 'familiar'];
+            if (!tiposValidos.includes(tipo)) {
+                return res.status(400).json({ message: "Tipo de usuário inválido." });
+            }
+            if (!isAdmin) {
+                return res.status(403).json({ message: "Apenas administradores podem alterar o tipo de usuário." });
+            }
+            tipoFormatado = tipo;
+        }
+
         if (senha) {
             const saltRounds = 10;
             const hashPassword = await bcrypt.hash(senha, saltRounds);
@@ -117,6 +160,8 @@ export const editUser = async (req, res) => {
                 return res.status(404).json({ message: "Usuário não encontrado." });
             }
         }
+
+        await registrarAcaoUsuario(req, 'edicao_usuario', `Perfil de "${email}" atualizado`);
         
         return res.status(200).json({ message: "Usuário atualizado com sucesso!" });
     } catch (error) {
@@ -140,11 +185,18 @@ export const deleteUser = async (req, res) => {
             return res.status(400).json({ message: "Você não pode excluir sua própria conta." });
         }
 
+        const [alvo] = await db.query('SELECT email FROM usuario WHERE id = ? LIMIT 1', [id]);
+        if (alvo.length === 0) {
+            return res.status(404).json({ message: "Usuário não encontrado." });
+        }
+
         const [result] = await db.query("DELETE FROM usuario WHERE id = ?", [id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Usuário não encontrado." });
         }
+
+        await registrarAcaoUsuario(req, 'exclusao_usuario', `Usuário "${alvo[0].email}" removido do sistema`);
 
         return res.status(200).json({ message: "Usuário excluído com sucesso.", success: true });
     } catch (error) {

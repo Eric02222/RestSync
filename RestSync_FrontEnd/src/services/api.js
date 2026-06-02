@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Dev local: proxy Vite em /api → backend :3001 | Docker: VITE_API_URL=http://localhost:3001
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -28,11 +29,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear local storage and redirect if token is invalid or expired
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Dispatch event to notify AuthContext to update state
       window.dispatchEvent(new Event('auth-unauthorized'));
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

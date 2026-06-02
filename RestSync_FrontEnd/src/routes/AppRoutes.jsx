@@ -40,8 +40,15 @@ const router = createBrowserRouter([
       // Dashboard — todos os perfis
       { path: '/dashboard', element: <Dashboard /> },
 
-      // Residentes — admin, medico e familiar (com filtro no backend para familiar)
-      { path: '/pacientes', element: <Pacientes /> },
+      // Gestão de residentes — admin e médico
+      {
+        path: '/pacientes',
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'medico']}>
+            <Pacientes />
+          </ProtectedRoute>
+        ),
+      },
 
       // Histórico — todos os perfis
       { path: '/historico', element: <Historico /> },

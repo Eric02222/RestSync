@@ -6,7 +6,7 @@ services:
     container_name: restsync_db_container
     restart: always
     ports:
-      - "3366:3366"
+      - "3366:3306"
     environment:
       MYSQL_ROOT_PASSWORD: milionario
       MYSQL_DATABASE: restsync_db

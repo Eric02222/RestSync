@@ -14,7 +14,7 @@ const permitirApenas = (...tiposPermitidos) => {
 };
 
 
-dadosVitaisRouter.post('/dispositivo', enviarDadosVitais);
+dadosVitaisRouter.post('/dispositivo', authMiddleware, permitirApenas('admin', 'medico'), enviarDadosVitais);
 
 dadosVitaisRouter.get('/historico/:paciente_id', authMiddleware, permitirApenas('admin', 'medico', 'familiar'), buscarHistoricoPaciente);
 

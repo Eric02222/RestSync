@@ -365,7 +365,7 @@ const Pacientes = () => {
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative animate-scale-up">
             {/* Modal Close */}
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => setShowModalDelete(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer"
             >
               <X className="h-5 w-5" />

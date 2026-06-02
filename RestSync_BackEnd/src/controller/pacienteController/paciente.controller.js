@@ -1,4 +1,16 @@
 import { db } from "../../config/db.js";
+import { getClientIp, obterEmailUsuario, registrarAuditoria } from '../../services/auditoria.service.js';
+
+async function registrarAcaoPaciente(req, tipo, descricao) {
+    const email = await obterEmailUsuario(req.user?.id);
+    await registrarAuditoria({
+        usuarioId: req.user?.id,
+        usuarioEmail: email,
+        tipo,
+        descricao,
+        ip: getClientIp(req),
+    });
+}
 
 export const createPaciente = async (req, res) => {
     try {
@@ -18,8 +30,11 @@ export const createPaciente = async (req, res) => {
             [nome, cpf, endereco, telefone, JSON.stringify(dados_vitais || {})]
         );
         if (result.affectedRows === 0) {
-            return res.status(400).json({ message: "Não foi possível criar o paciente.", error: error.message });
+            return res.status(400).json({ message: "Não foi possível criar o paciente." });
         }
+
+        await registrarAcaoPaciente(req, 'cadastro_residente', `Residente "${nome}" cadastrado`);
+
         return res.status(201).json({ message: "Paciente criado com sucesso." });
     } catch (error) {
         return res.status(500).json({ message: "Erro ao criar paciente.", error: error.message });
@@ -79,6 +94,9 @@ export const editPaciente = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Paciente não encontrado." });
         }
+
+        await registrarAcaoPaciente(req, 'edicao_residente', `Dados de "${nome}" atualizados`);
+
         return res.status(200).json({ message: "Paciente atualizado com sucesso." });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
@@ -96,13 +114,21 @@ export const deletPacient = async (req, res) => {
             return res.status(400).json({ message: "O ID do paciente é obrigatório.", success: false });
         }
 
-        const [result] = await db.query("DELETE FROM paciente WHERE id = ?", [id])
-
-        if (result.affectedRows === 0) {
-            return res.status(400).json({ message: "Não foi possivel deletar o paciente", success: false })
+        const [alvo] = await db.query('SELECT nome FROM paciente WHERE id = ? LIMIT 1', [id]);
+        if (alvo.length === 0) {
+            return res.status(404).json({ message: "Paciente não encontrado.", success: false });
         }
 
-        return res.status(200).json({ message: "Paciente deletado com sucesso", success: true })
+        const [result] = await db.query("DELETE FROM paciente WHERE id = ?", [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({ message: "Não foi possivel deletar o paciente", success: false });
+        }
+
+        const nomeResidente = alvo[0].nome || `ID #${id}`;
+        await registrarAcaoPaciente(req, 'exclusao_residente', `Residente "${nomeResidente}" removido do sistema`);
+
+        return res.status(200).json({ message: "Paciente deletado com sucesso", success: true });
     } catch (error) {
         console.log(error)
         return res.status(500).json({ message: "Não foi possivel deletar o paciente", error: error })

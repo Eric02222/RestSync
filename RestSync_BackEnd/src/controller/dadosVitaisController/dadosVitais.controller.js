@@ -40,6 +40,17 @@ export const buscarHistoricoPaciente = async (req, res) => {
             return res.status(400).json({ message: "ID do paciente não fornecido." });
         }
 
+        if (req.user.tipo_usuario === 'familiar') {
+            const [vinculo] = await db.query(
+                `SELECT 1 FROM vinculo_usuario_paciente
+                 WHERE paciente_id = ? AND usuario_id = ? LIMIT 1`,
+                [paciente_id, req.user.id]
+            );
+            if (vinculo.length === 0) {
+                return res.status(403).json({ message: "Acesso negado a este residente." });
+            }
+        }
+
         // Busca os últimos 50 
         const [historico] = await db.query(
             `SELECT id, frequencia_cardiaca, pressao_arterial, temperatura, data, hora 
@@ -49,13 +60,11 @@ export const buscarHistoricoPaciente = async (req, res) => {
             [paciente_id]
         );
 
-        if (historico.length === 0) {
-            return res.status(404).json({ message: "Nenhum histórico encontrado para este paciente." });
-        }
-
-        return res.status(200).json({ 
-            message: "Histórico recuperado com sucesso.", 
-            dados: historico 
+        return res.status(200).json({
+            message: historico.length === 0
+                ? "Nenhum histórico encontrado para este paciente."
+                : "Histórico recuperado com sucesso.",
+            dados: historico,
         });
 
     } catch (error) {

@@ -32,7 +32,7 @@ RestSync foi projetado com foco em **UX de Alta Fidelidade**, oferecendo uma exp
 
 *   **Auditoria e Histórico:**
     *   **Histórico e Relatórios:** Tabela detalhada de medições clínicas anteriores com badges de status de risco.
-    *   **Auditoria Simples (Logs):** Página preparada para futura integração com backend, exibindo dados mockados para fins de demonstração e estrutura.
+    *   **Auditoria (Logs):** Histórico real de logins, cadastros e alterações (somente admin).
 
 ---
 
@@ -86,18 +86,20 @@ Se preferir rodar cada serviço individualmente em seu ambiente de desenvolvimen
     *   Crie uma instância MySQL chamada `restsync_db`.
     *   Execute o script de criação [init.sql](file:///Users/yknwo/Desktop/RestSync/RestSync_BackEnd/src/config/init.sql) para estruturar as tabelas e seeds.
 
-2.  **Rodar o Backend:**
+2.  **Rodar o Backend** (porta **3001**):
     ```bash
     cd RestSync_BackEnd
     npm install
-    # Configure o arquivo .env conforme o env.example.js
+    cp .env.example .env   # ajuste DB_PASSWORD se necessário
     npm run dev
     ```
 
-3.  **Rodar o Frontend:**
+3.  **Rodar o Frontend** (porta **5173**, API via proxy `/api`):
     ```bash
     cd RestSync_FrontEnd
     npm install
     npm run dev
     ```
-    *Acesse a URL de desenvolvimento fornecida pelo Vite (geralmente http://localhost:5173).*
+    *Acesse http://localhost:5173 — as chamadas vão para o backend em :3001 automaticamente.*
+
+    Se você tiver um `.env` local com `VITE_API_URL=http://localhost:8000`, apague ou corrija para `/api` ou `http://localhost:3001`.

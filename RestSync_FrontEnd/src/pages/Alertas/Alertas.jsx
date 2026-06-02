@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePacientes } from '../../hooks/usePacientes';
+import { useAuth } from '../../context/context';
 import { vitalsService } from '../../services/vitals.service';
 import { toast } from 'react-toastify';
 import {
@@ -18,21 +19,8 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-
-const getHeartRateStatus = (fc) => {
-  if (!fc) return 'normal';
-  if (fc > 120 || fc < 50) return 'critical';
-  if (fc >= 90 || fc <= 55) return 'attention';
-  return 'normal';
-};
-
-const getTemperatureStatus = (temp) => {
-  if (!temp) return 'normal';
-  const t = parseFloat(temp);
-  if (t >= 38.0 || t <= 35.0) return 'critical';
-  if (t >= 37.2) return 'attention';
-  return 'normal';
-};
+import { getHeartRateStatus, getTemperatureStatus } from '../../utils/vitalsRules';
+import { VITALS_UPDATED_EVENT } from '../../utils/vitalsEvents';
 
 const buildAlertas = (paciente, historico) => {
   const alerts = [];
@@ -99,6 +87,8 @@ const severityIcon = (s) => {
 };
 
 const Alertas = () => {
+  const { user } = useAuth();
+  const canManageAlertas = ['admin', 'medico'].includes(user?.tipo_usuario);
   const { pacientes, loading: loadingPacientes } = usePacientes();
   const [alertas, setAlertas] = useState([]);
   const [loadingAlertas, setLoadingAlertas] = useState(false);
@@ -136,10 +126,21 @@ const Alertas = () => {
   useEffect(() => {
     if (pacientes.length > 0) {
       fetchAlertas();
+    } else {
+      setAlertas([]);
     }
   }, [pacientes]);
 
+  useEffect(() => {
+    const handler = () => {
+      if (pacientes.length > 0) fetchAlertas();
+    };
+    window.addEventListener(VITALS_UPDATED_EVENT, handler);
+    return () => window.removeEventListener(VITALS_UPDATED_EVENT, handler);
+  }, [pacientes]);
+
   const markStatus = (id, newStatus) => {
+    if (!canManageAlertas) return;
     setStatusOverride((prev) => ({ ...prev, [id]: newStatus }));
     toast.success(`Alerta marcado como ${newStatus}.`);
   };
@@ -166,7 +167,9 @@ const Alertas = () => {
             Central de Alertas
           </h2>
           <p className="text-xs text-slate-500 font-semibold mt-1">
-            Eventos clínicos gerados a partir dos sinais vitais monitorados
+            {canManageAlertas
+              ? 'Eventos clínicos gerados a partir dos sinais vitais monitorados'
+              : 'Acompanhamento dos alertas do seu familiar — somente leitura'}
           </p>
         </div>
         <Button
@@ -242,9 +245,11 @@ const Alertas = () => {
           <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-slate-700">Nenhum alerta encontrado</h3>
           <p className="text-xs text-slate-400 mt-1">
-            {alertas.length === 0
-              ? 'Todos os sinais vitais estão dentro dos parâmetros normais.'
-              : 'Nenhum alerta corresponde aos filtros selecionados.'}
+            {pacientes.length === 0
+              ? 'Nenhum residente vinculado à sua conta. Peça à equipe da casa de repouso para liberar o acesso.'
+              : alertas.length === 0
+                ? 'Nenhuma anomalia nos registros recentes. Use o simulador IoT no Dashboard para gerar um alerta de demonstração.'
+                : 'Nenhum alerta corresponde aos filtros selecionados.'}
           </p>
         </div>
       ) : (
@@ -259,7 +264,9 @@ const Alertas = () => {
                   <th className="px-5 py-4">Tipo</th>
                   <th className="px-5 py-4">Detalhe</th>
                   <th className="px-5 py-4">Status</th>
-                  <th className="px-5 py-4 text-right">Ações</th>
+                  {canManageAlertas && (
+                    <th className="px-5 py-4 text-right">Ações</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100/60 text-xs font-semibold text-slate-700">
@@ -314,28 +321,32 @@ const Alertas = () => {
                           {effStatus.charAt(0).toUpperCase() + effStatus.slice(1)}
                         </span>
                       </td>
-                      <td className="px-5 py-4 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {effStatus === 'novo' && (
-                            <button
-                              onClick={() => markStatus(alerta.id, 'visualizado')}
-                              title="Marcar como visualizado"
-                              className="p-1.5 rounded-lg border border-slate-100 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 cursor-pointer"
-                            >
-                              <Eye className="h-3.5 w-3.5 text-slate-500" />
-                            </button>
-                          )}
-                          {effStatus !== 'resolvido' && (
-                            <button
-                              onClick={() => markStatus(alerta.id, 'resolvido')}
-                              title="Marcar como resolvido"
-                              className="p-1.5 rounded-lg border border-emerald-100 bg-emerald-50 hover:bg-white hover:border-emerald-300 transition-colors duration-200 cursor-pointer"
-                            >
-                              <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                      {canManageAlertas && (
+                        <td className="px-5 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {effStatus === 'novo' && (
+                              <button
+                                type="button"
+                                onClick={() => markStatus(alerta.id, 'visualizado')}
+                                title="Marcar como visualizado"
+                                className="p-1.5 rounded-lg border border-slate-100 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 cursor-pointer"
+                              >
+                                <Eye className="h-3.5 w-3.5 text-slate-500" />
+                              </button>
+                            )}
+                            {effStatus !== 'resolvido' && (
+                              <button
+                                type="button"
+                                onClick={() => markStatus(alerta.id, 'resolvido')}
+                                title="Marcar como resolvido"
+                                className="p-1.5 rounded-lg border border-emerald-100 bg-emerald-50 hover:bg-white hover:border-emerald-300 transition-colors duration-200 cursor-pointer"
+                              >
+                                <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

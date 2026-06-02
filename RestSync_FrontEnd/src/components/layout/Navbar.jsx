@@ -42,7 +42,7 @@ const Navbar = () => {
       to: '/pacientes',
       label: 'Residentes',
       icon: Users,
-      roles: ['admin', 'medico', 'familiar'],
+      roles: ['admin', 'medico'],
     },
     {
       to: '/historico',

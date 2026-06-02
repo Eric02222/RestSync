@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePacientes } from '../../hooks/usePacientes';
 import { useVitals } from '../../hooks/useVitals';
 import { vitalsService } from '../../services/vitals.service';
 import { useAuth } from '../../context/context';
+import { notifyVitalsUpdated } from '../../utils/vitalsEvents';
 import { toast } from 'react-toastify';
 import { 
   Heart, 
@@ -26,7 +28,9 @@ import ExecutiveSummary from '../../components/dashboard/ExecutiveSummary';
 
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const canSimulate = ['admin', 'medico'].includes(user?.tipo_usuario);
   const { pacientes, loading: loadingPacientes, refetch: refetchPacientes } = usePacientes();
   const [selectedPacienteId, setSelectedPacienteId] = useState('');
   
@@ -93,9 +97,13 @@ const Dashboard = () => {
         temperatura: tempVal,
       });
       
-      toast.success('Sinal vital simulado com sucesso!');
+      notifyVitalsUpdated(selectedPacienteId);
+      toast.success('Sinal vital registrado! KPIs e Alertas foram atualizados.');
       setShowSimulator(false);
-      refetchVitals();
+      await refetchVitals();
+      if (parseInt(simFc, 10) > 120 || parseFloat(simTemp) >= 38) {
+        setTimeout(() => navigate('/alertas'), 800);
+      }
     } catch (err) {
       console.error(err);
       toast.error('Erro ao simular envio de dados vitais.');
@@ -170,7 +178,7 @@ const Dashboard = () => {
             <RefreshCw className={`h-3.5 w-3.5 ${loadingPacientes || loadingVitals ? 'animate-spin' : ''}`} />
           </Button>
 
-          {selectedPacienteId && (
+          {selectedPacienteId && canSimulate && (
             <Button
               onClick={() => {
                 applyPreset('normal');
@@ -187,7 +195,7 @@ const Dashboard = () => {
       </div>
 
       {/* Simulator Quick Modal Form */}
-      {showSimulator && (
+      {showSimulator && canSimulate && (
         <div className="p-6 rounded-2xl bg-gradient-to-tr from-slate-900 via-slate-800 to-blue-950 text-white shadow-xl space-y-6 animate-slide-up border border-blue-900/40">
           <div className="flex justify-between items-center">
             <div>
@@ -272,21 +280,26 @@ const Dashboard = () => {
       )}
 
       {/* Main Grid View */}
-      {pacientes.length === 0 ? (
-        /* Empty State */
+      {loadingPacientes ? (
+        <div className="flex justify-center items-center h-48">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        </div>
+      ) : pacientes.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 bg-white/70 border border-slate-200/80 rounded-2xl shadow-sm text-center">
           <AlertCircle className="h-12 w-12 text-slate-400 mb-4" />
-          <h3 className="text-lg font-bold text-slate-800">Nenhum Residente Cadastrado</h3>
+          <h3 className="text-lg font-bold text-slate-800">Nenhum residente disponível</h3>
           <p className="text-sm text-slate-500 mt-2 max-w-sm">
-            Para iniciar o monitoramento, acesse a página de Residentes para cadastrar o primeiro idoso.
+            {user?.tipo_usuario === 'familiar'
+              ? 'Sua conta ainda não está vinculada a um residente. Solicite o vínculo à equipe da casa de repouso.'
+              : 'Cadastre o primeiro residente para iniciar o monitoramento.'}
           </p>
-          {['admin', 'medico'].includes(user?.tipo_usuario) && (
+          {canSimulate && (
             <Button
-              onClick={() => window.location.href = '/pacientes'}
+              onClick={() => navigate('/pacientes')}
               variant="primary"
               className="mt-6 shadow-md shadow-blue-500/10 cursor-pointer"
             >
-              Cadastrar Primeiro Residente
+              Ir para Residentes
             </Button>
           )}
         </div>
@@ -324,8 +337,8 @@ const Dashboard = () => {
 
             <MetricCard
               title="Oxigenação (SpO2)"
-              value={latestVitals ? '98' : '--'} // Oxygen mock
-              unit="%"
+              value="--"
+              unit=""
               status="normal"
               icon={Wind}
             />
