@@ -14,7 +14,8 @@ import {
   X,
   Plus,
   Loader2,
-  Trash
+  Trash,
+  Trash2
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -31,7 +32,7 @@ const Pacientes = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deletMode, setIsDeletMode] = useState(false);
-  const [deletId, setDeletId] = useState(null);
+  const [DeletingPacient, setDeletingPacient] = useState(null);
 
   // Form Fields
   const [nome, setNome] = useState('');
@@ -57,10 +58,16 @@ const Pacientes = () => {
     setShowModal(true);
   };
 
-  const openExcluirModal = (paciente) => {
+  const closeModal = () => {
+    setShowModal(false);
+    setShowModalDelete(false);
+    setDeletingPacient(null);
+  };
+
+  const openDeleteModal = (paciente) => {
     setIsDeletMode(true);
     setShowModalDelete(true);
-    setDeletId(paciente.id)
+    setDeletingPacient(paciente)
   }
 
   const openEditModal = (paciente) => {
@@ -98,10 +105,11 @@ const Pacientes = () => {
 
   const handleDeleteSubmit = async (e) => {
     e.preventDefault();
+    if (!DeletingPacient) return;
     setSubmitting(true);
     try {
       if (deletMode) {
-        await pacienteService.deletePaciente(deletId);
+        await pacienteService.deletePaciente(DeletingPacient.id);
         toast.success('Cadastro do residente deletado com sucesso!');
       } else {
         toast.success('Erro ao deletar cadastro de residente!');
@@ -131,9 +139,6 @@ const Pacientes = () => {
       if (isEditMode) {
         await pacienteService.editPaciente(editingId, { nome, cpf, endereco, telefone });
         toast.success('Cadastro do residente atualizado com sucesso!');
-      } else if (deletMode) {
-        await pacienteService.deletePaciente(deletId);
-        toast.success('Cadastro do residente deletado com sucesso!');
       } else {
         await pacienteService.createPaciente({ nome, cpf, endereco, telefone });
         toast.success('Residente cadastrado com sucesso!');
@@ -230,7 +235,7 @@ const Pacientes = () => {
                 {canManage && (
                   <div className="flex gap-3">
                     <button
-                      onClick={() => openExcluirModal(paciente)}
+                      onClick={() => openDeleteModal(paciente)}
                       className="p-2 rounded-lg border border-slate-100 bg-red-100 hover:bg-white hover:text-red-600 hover:border-red-100 transition-colors duration-200 cursor-pointer"
                       title="Excluir cadastro"
                     >
@@ -282,7 +287,7 @@ const Pacientes = () => {
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative animate-scale-up">
             {/* Modal Close */}
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => closeModal(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer"
             >
               <X className="h-5 w-5" />
@@ -340,7 +345,7 @@ const Pacientes = () => {
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
                 <Button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => closeModal(false)}
                   variant="outline"
                   className="cursor-pointer"
                 >
@@ -360,26 +365,32 @@ const Pacientes = () => {
         </div>
       )}
 
-      {showModalDelete && (
+      {showModalDelete && DeletingPacient && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative animate-scale-up">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md shadow-2xl p-6 relative animate-scale-up">
             {/* Modal Close */}
             <button
-              onClick={() => setShowModalDelete(false)}
+              onClick={() => closeModal(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <h3 className="flex justify-center text-lg font-bold text-slate-900 mb-6">
-              Deseja deletar residente?
-            </h3>
+            <div className="text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mb-4">
+                <Trash2 className="h-7 w-7 text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Excluir Usuário?</h3>
+              <p className="text-sm text-slate-500 mt-2">
+                Você está prestes a excluir <span className="font-bold text-slate-800">{DeletingPacient.nome}</span>. Esta ação não pode ser desfeita.
+              </p>
+            </div>
 
             <form onSubmit={handleDeleteSubmit} className="flex justify-center gap-100 ">
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
+              <div className="flex justify-center gap-3 pt-6 border-t border-slate-100 mt-6">
                 <Button
-                  onClick={() => setShowModalDelete(false)}
+                  onClick={() => closeModal(false)}
                   variant="outline"
                   className="cursor-pointer"
                 >
@@ -391,7 +402,7 @@ const Pacientes = () => {
                   loading={submitting}
                   className="shadow-md shadow-red-500/10 cursor-pointer"
                 >
-                  Deletar resitente
+                  Sim, excluir
                 </Button>
               </div>
             </form>

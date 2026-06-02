@@ -62,12 +62,12 @@ const Navbar = () => {
       icon: UserCog,
       roles: ['admin'],
     },
-    {
-      to: '/logs',
-      label: 'Auditoria',
-      icon: ScrollText,
-      roles: ['admin'],
-    },
+    // {
+    //   to: '/logs',
+    //   label: 'Auditoria',
+    //   icon: ScrollText,
+    //   roles: ['admin'],
+    // },
   ];
 
   // Filter items by user role
