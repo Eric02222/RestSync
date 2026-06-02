@@ -33,19 +33,19 @@ Reestruturamos e finalizamos a interface e conexões do front-end com foco em **
 
 ## 🐳 Como Executar com Docker Compose (Recomendado)
 
-Disponibilizamos uma configuração completa do Docker Compose que empacota o Frontend no Nginx, o Backend Node e o Banco de Dados MySQL com auto-inicialização. Não é necessário instalar nenhuma dependência localmente.
+Disponibilizamos uma configuração completa do Docker Compose que empacota o Frontend React, o Backend Node e o Banco de Dados MySQL com auto-inicialização. Não é necessário instalar nenhuma dependência localmente.
 
 ### 1. Iniciar os Serviços
 Na pasta raiz do projeto (`RestSync`), execute:
 ```bash
 docker-compose up --build -d
 ```
-*Este comando baixa as imagens, compila o frontend React com o Nginx, configura o banco MySQL e carrega as sementes (seeds) de teste.*
+*Este comando baixa as imagens, compila o frontend React, configura o banco MySQL e carrega as sementes (seeds) de teste.*
 
 ### 2. Acessar a Aplicação
-* **Interface Frontend (React):** Acesse [http://localhost](http://localhost) (Servido via porta padrão 80 do Nginx, com suporte a SPA routing).
-* **API Backend (Express):** Acesse [http://localhost:8000](http://localhost:8000).
-* **Banco de Dados (MySQL):** Rodando em `localhost:3306` (Porta externa exposta).
+* **Interface Frontend (React):** Acesse [http://localhost:8000](http://localhost:8000) (Servido via Vite).
+* **API Backend (Express):** Acesse [http://localhost:3001](http://localhost:3001).
+* **Banco de Dados (MySQL):** Rodando em `localhost:3366` (Porta externa exposta).
 
 ### 3. Contas de Teste Pré-Configuradas (Seeds)
 O banco de dados é automaticamente inicializado com o residente **Geraldo Magela de Souza**, histórico clínico inicial e três perfis de usuários prontos para uso:

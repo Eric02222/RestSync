@@ -17,7 +17,7 @@ const PrivateLayout = () => {
       <footer className="border-t border-slate-200/60 bg-white py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 font-medium tracking-wide">
           <p>© {new Date().getFullYear()} RestSync. Monitoramento inteligente para casas de repouso.</p>
-          <p className="mt-2 md:mt-0">Desenvolvido com foco em UX & HealthTech.</p>
+          <p className="mt-2 md:mt-0">Desenvolvido como solução para idosos, atletas, pacientes e pessoas com arritimias cardíacas.</p>
         </div>
       </footer>
     </div>

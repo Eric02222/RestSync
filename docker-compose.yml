@@ -6,7 +6,7 @@ services:
     container_name: restsync_db_container
     restart: always
     ports:
-      - "3306:3306"
+      - "3366:3366"
     environment:
       MYSQL_ROOT_PASSWORD: milionario
       MYSQL_DATABASE: restsync_db
@@ -26,9 +26,9 @@ services:
     container_name: restsync_backend_container
     restart: always
     ports:
-      - "8000:8000"
+      - "3001:3001"
     environment:
-      PORT: 8000
+      PORT: 3001
       DB_HOST: db
       DB_USER: root
       DB_PASSWORD: milionario
@@ -41,14 +41,15 @@ services:
   frontend:
     build:
       context: ./RestSync_FrontEnd
-      args:
-        - VITE_API_URL=http://localhost:8000
     container_name: restsync_frontend_container
     restart: always
+    environment:
+      - VITE_API_URL=http://localhost:3001
     ports:
-      - "80:80"
+      - "8000:8000"
     depends_on:
       - backend
+
 
 volumes:
   db_data:

@@ -1,8 +1,4 @@
-# Stage 1: Build React SPA
-FROM node:20 AS build
-
-ARG VITE_API_URL=http://localhost:8000
-ENV VITE_API_URL=$VITE_API_URL
+FROM node:20
 
 WORKDIR /usr/src/app
 
@@ -10,25 +6,13 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install all dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build application
-RUN npm run build
+# Expose the port used by Vite
+EXPOSE 8000
 
-# Stage 2: Serve using Nginx
-FROM nginx:alpine
-
-# Copy built application to nginx server folder
-COPY --from=build /usr/src/app/dist /usr/share/nginx/html
-
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port 80
-EXPOSE 80
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start Vite dev server on port 8000
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "8000"]
