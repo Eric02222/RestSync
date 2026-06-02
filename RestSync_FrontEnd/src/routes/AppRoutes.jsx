@@ -17,7 +17,7 @@ import Historico from '../pages/Historico/Historico';
 import Usuarios from '../pages/Usuarios/Usuarios';
 import Perfil from '../pages/Perfil/Perfil';
 import Alertas from '../pages/Alertas/Alertas';
-// import Logs from '../pages/Logs/Logs';
+import Logs from '../pages/Logs/Logs';
 import Error from '../pages/Error';
 
 const router = createBrowserRouter([
@@ -70,14 +70,14 @@ const router = createBrowserRouter([
       },
 
       // Auditoria / Logs — admin only
-      // {
-      //   path: '/logs',
-      //   element: (
-      //     <ProtectedRoute allowedRoles={['admin']}>
-      //       <Logs />
-      //     </ProtectedRoute>
-      //   ),
-      // },
+      {
+        path: '/logs',
+        element: (
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Logs />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   // Fallback Wildcard Route (404 Error page)

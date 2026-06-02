@@ -17,6 +17,7 @@ app.use('/auth', loginRouter);
 app.use('/pacientes', pacienteRouter);
 app.use('/vinculos', vinculoRouter);
 app.use('/auditoria', auditoriaRouter);
+
 app.use('/', dadosVitaisRouter);
 
 
