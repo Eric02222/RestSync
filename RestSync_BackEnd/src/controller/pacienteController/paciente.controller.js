@@ -28,9 +28,30 @@ export const createPaciente = async (req, res) => {
 
 export const getPacientes = async (req, res) => {
     try {
-        const [result] = await db.query("SELECT id, nome, cpf, endereco, telefone, dados_vitais FROM paciente");
+        const { tipo_usuario, id: usuarioId } = req.user;
+
+        let query;
+        let params = [];
+
+        if (tipo_usuario === 'familiar') {
+            // familiar sees only linked patients
+            query = `
+                SELECT p.id, p.nome, p.cpf, p.endereco, p.telefone, p.dados_vitais
+                FROM paciente p
+                INNER JOIN vinculo_usuario_paciente v ON v.paciente_id = p.id
+                WHERE v.usuario_id = ?
+            `;
+            params = [usuarioId];
+        } else {
+            // admin and medico see all
+            query = "SELECT id, nome, cpf, endereco, telefone, dados_vitais FROM paciente";
+        }
+
+        const [result] = await db.query(query, params);
+
         if (result.length === 0) {
-            return res.status(404).json({ message: "Nenhum paciente encontrado." });
+            // Return empty array instead of 404 to avoid frontend errors
+            return res.status(200).json({ message: "Nenhum paciente encontrado.", data: [] });
         }
         return res.status(200).json({ message: "Pacientes encontrados", data: result });
     } catch (error) {

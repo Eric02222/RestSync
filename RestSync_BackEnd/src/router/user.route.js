@@ -1,5 +1,5 @@
 import express from 'express';
-import { createUser, editUser, getUser } from '../controller/uerController/user.controller.js';
+import { createUser, editUser, getUser, getUserById, deleteUser } from '../controller/uerController/user.controller.js';
 import { authMiddleware } from '../middleware/login.middleware.js';
 
 const userRouter = express.Router();
@@ -17,6 +17,12 @@ userRouter.post('/', authMiddleware, permitirApenas('admin', 'medico'), createUs
 
 userRouter.get('/', authMiddleware, permitirApenas('admin', 'medico'), getUser);
 
-userRouter.put('/:id', authMiddleware, permitirApenas('admin', 'medico'), editUser);
+// Get own profile or specific user (admin/medico only for others)
+userRouter.get('/:id', authMiddleware, getUserById);
+
+userRouter.put('/:id', authMiddleware, editUser);
+
+// Admin-only: delete user
+userRouter.delete('/:id', authMiddleware, permitirApenas('admin'), deleteUser);
 
 export default userRouter;

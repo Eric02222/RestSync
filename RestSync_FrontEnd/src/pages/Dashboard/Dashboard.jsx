@@ -22,6 +22,8 @@ import AlertCard from '../../components/cards/AlertCard';
 import VitalsChart from '../../components/charts/VitalsChart';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import ExecutiveSummary from '../../components/dashboard/ExecutiveSummary';
+
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -121,7 +123,13 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Executive Summary — KPIs Globais */}
+      {pacientes.length > 0 && (
+        <ExecutiveSummary pacientes={pacientes} />
+      )}
+
       {/* Greeting Banner */}
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/70 border border-slate-200/85 p-6 rounded-2xl shadow-sm backdrop-blur-sm">
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">

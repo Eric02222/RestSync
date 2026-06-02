@@ -1,12 +1,26 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/context';
-import { HeartPulse, LayoutDashboard, Users, History, LogOut, Menu, X, User } from 'lucide-react';
+import {
+  HeartPulse,
+  LayoutDashboard,
+  Users,
+  History,
+  LogOut,
+  Menu,
+  X,
+  User,
+  UserCog,
+  BellRing,
+  ScrollText,
+  ChevronDown,
+} from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -28,7 +42,7 @@ const Navbar = () => {
       to: '/pacientes',
       label: 'Residentes',
       icon: Users,
-      roles: ['admin', 'medico'], // familiar does not have full patient CRUD
+      roles: ['admin', 'medico', 'familiar'],
     },
     {
       to: '/historico',
@@ -36,10 +50,28 @@ const Navbar = () => {
       icon: History,
       roles: ['admin', 'medico', 'familiar'],
     },
+    {
+      to: '/alertas',
+      label: 'Alertas',
+      icon: BellRing,
+      roles: ['admin', 'medico', 'familiar'],
+    },
+    {
+      to: '/usuarios',
+      label: 'Usuários',
+      icon: UserCog,
+      roles: ['admin'],
+    },
+    {
+      to: '/logs',
+      label: 'Auditoria',
+      icon: ScrollText,
+      roles: ['admin'],
+    },
   ];
 
   // Filter items by user role
-  const allowedNavItems = navItems.filter(item => 
+  const allowedNavItems = navItems.filter(item =>
     !item.roles || item.roles.includes(user?.tipo_usuario)
   );
 
@@ -58,7 +90,7 @@ const Navbar = () => {
               </span>
             </div>
             {/* Desktop Navigation */}
-            <div className="hidden md:ml-10 md:flex md:space-x-4">
+            <div className="hidden md:ml-8 md:flex md:space-x-1">
               {allowedNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -66,14 +98,14 @@ const Navbar = () => {
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `flex items-center px-4 py-2 rounded-xl text-sm font-medium tracking-wide transition-all duration-200 ${
+                      `flex items-center px-3 py-2 rounded-xl text-sm font-medium tracking-wide transition-all duration-200 ${
                         isActive
                           ? 'bg-blue-50 text-blue-600 font-semibold'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       }`
                     }
                   >
-                    <Icon className="mr-2 h-4 w-4" />
+                    <Icon className="mr-1.5 h-4 w-4" />
                     {item.label}
                   </NavLink>
                 );
@@ -82,25 +114,46 @@ const Navbar = () => {
           </div>
 
           {/* User profile & logout */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
-            <div className="flex items-center space-x-3 border-r border-slate-200 pr-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                <User className="h-5 w-5" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-semibold text-slate-800 leading-none">{user?.nome}</p>
-                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 mt-1 text-xs font-medium text-blue-700 capitalize border border-blue-100">
-                  {user?.tipo_usuario}
-                </span>
-              </div>
+          <div className="hidden md:flex md:items-center md:space-x-3">
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center space-x-2 rounded-xl px-3 py-2 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                  {user?.nome?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div className="text-left hidden lg:block">
+                  <p className="text-xs font-bold text-slate-800 leading-none">{user?.nome}</p>
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 mt-0.5 text-[10px] font-medium text-blue-700 capitalize border border-blue-100">
+                    {user?.tipo_usuario}
+                  </span>
+                </div>
+                <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+                  <NavLink
+                    to="/perfil"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150"
+                  >
+                    <User className="h-4 w-4 mr-2 text-slate-400" />
+                    Meu Perfil
+                  </NavLink>
+                  <div className="border-t border-slate-100 my-1" />
+                  <button
+                    onClick={() => { setProfileOpen(false); handleLogout(); }}
+                    className="flex w-full items-center px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors duration-150 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </button>
+                </div>
+              )}
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center text-sm font-medium text-slate-600 hover:text-red-600 transition-colors duration-200 cursor-pointer p-2 rounded-xl hover:bg-red-50"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -138,23 +191,20 @@ const Navbar = () => {
               </NavLink>
             );
           })}
-          <div className="border-t border-slate-100 pt-4 mt-4 px-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                <User className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-800 leading-none">{user?.nome}</p>
-                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 mt-1 text-xs font-medium text-blue-700 capitalize border border-blue-100">
-                  {user?.tipo_usuario}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center text-sm font-medium text-red-600 transition-colors duration-200 cursor-pointer p-2 rounded-xl hover:bg-red-50"
+          <div className="border-t border-slate-100 pt-3 mt-2 space-y-1">
+            <NavLink
+              to="/perfil"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center px-4 py-3 rounded-xl text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <User className="mr-3 h-5 w-5" />
+              Meu Perfil
+            </NavLink>
+            <button
+              onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+              className="flex w-full items-center px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:bg-red-50 transition-colors duration-200 cursor-pointer"
+            >
+              <LogOut className="mr-3 h-5 w-5" />
               Sair
             </button>
           </div>

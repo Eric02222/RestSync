@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import VinculoManager from '../../components/vinculos/VinculoManager';
 
 const Pacientes = () => {
   const { user } = useAuth();
@@ -155,6 +156,8 @@ const Pacientes = () => {
     String(p.cpf || '').includes(searchTerm)
   );
 
+  const canManage = ['admin', 'medico'].includes(user?.tipo_usuario);
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Title Header */}
@@ -169,14 +172,16 @@ const Pacientes = () => {
           </p>
         </div>
 
-        <Button
-          onClick={openAddModal}
-          variant="primary"
-          className="flex items-center text-xs py-2.5 px-4 shadow-md shadow-blue-500/10 cursor-pointer"
-        >
-          <UserPlus className="mr-2 h-4 w-4" />
-          Adicionar Residente
-        </Button>
+        {canManage && (
+          <Button
+            onClick={openAddModal}
+            variant="primary"
+            className="flex items-center text-xs py-2.5 px-4 shadow-md shadow-blue-500/10 cursor-pointer"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Adicionar Residente
+          </Button>
+        )}
       </div>
 
       {/* Search Filter Toolbar */}
@@ -222,23 +227,25 @@ const Pacientes = () => {
                   </span>
                 </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => openExcluirModal(paciente)}
-                    className="p-2 rounded-lg border border-slate-100 bg-red-100 hover:bg-white hover:text-red-600 hover:border-red-100 transition-colors duration-200 cursor-pointer"
-                    title="Excluir cadastro"
-                  >
-                    <Trash className="h-3.5 w-3.5" />
-                  </button>
+                {canManage && (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => openExcluirModal(paciente)}
+                      className="p-2 rounded-lg border border-slate-100 bg-red-100 hover:bg-white hover:text-red-600 hover:border-red-100 transition-colors duration-200 cursor-pointer"
+                      title="Excluir cadastro"
+                    >
+                      <Trash className="h-3.5 w-3.5" />
+                    </button>
 
-                  <button
-                    onClick={() => openEditModal(paciente)}
-                    className="p-2 rounded-lg border border-slate-100 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-colors duration-200 cursor-pointer"
-                    title="Editar cadastro"
-                  >
-                    <Edit2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                    <button
+                      onClick={() => openEditModal(paciente)}
+                      className="p-2 rounded-lg border border-slate-100 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-colors duration-200 cursor-pointer"
+                      title="Editar cadastro"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Data blocks */}
@@ -256,6 +263,14 @@ const Pacientes = () => {
                   <span className="line-clamp-2 leading-relaxed">{paciente.endereco}</span>
                 </div>
               </div>
+
+              {/* Vínculo Manager — admin/medico only */}
+              {canManage && (
+                <VinculoManager
+                  pacienteId={paciente.id}
+                  pacienteNome={paciente.nome}
+                />
+              )}
             </div>
           ))}
         </div>

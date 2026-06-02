@@ -14,6 +14,10 @@ import Login from '../pages/Login/Login';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import Pacientes from '../pages/Pacientes/Pacientes';
 import Historico from '../pages/Historico/Historico';
+import Usuarios from '../pages/Usuarios/Usuarios';
+import Perfil from '../pages/Perfil/Perfil';
+import Alertas from '../pages/Alertas/Alertas';
+import Logs from '../pages/Logs/Logs';
 import Error from '../pages/Error';
 
 const router = createBrowserRouter([
@@ -33,16 +37,40 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
+      // Dashboard — todos os perfis
       { path: '/dashboard', element: <Dashboard /> },
-      { 
-        path: '/pacientes', 
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'medico']}>
-            <Pacientes />
-          </ProtectedRoute>
-        ) 
-      },
+
+      // Residentes — admin, medico e familiar (com filtro no backend para familiar)
+      { path: '/pacientes', element: <Pacientes /> },
+
+      // Histórico — todos os perfis
       { path: '/historico', element: <Historico /> },
+
+      // Central de Alertas — todos os perfis
+      { path: '/alertas', element: <Alertas /> },
+
+      // Perfil do usuário logado — todos os perfis
+      { path: '/perfil', element: <Perfil /> },
+
+      // Painel de Usuários — admin only
+      {
+        path: '/usuarios',
+        element: (
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Usuarios />
+          </ProtectedRoute>
+        ),
+      },
+
+      // Auditoria / Logs — admin only
+      {
+        path: '/logs',
+        element: (
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Logs />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   // Fallback Wildcard Route (404 Error page)
