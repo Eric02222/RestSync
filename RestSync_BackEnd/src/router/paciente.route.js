@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPaciente, editPaciente, getPacientes } from '../controller/pacienteController/paciente.controller.js';
+import { createPaciente, deletPacient, editPaciente, getPacientes } from '../controller/pacienteController/paciente.controller.js';
 import { authMiddleware } from '../middleware/login.middleware.js';
 
 const pacienteRouter = express.Router();
@@ -16,5 +16,7 @@ const permitirApenas = (...tiposPermitidos) => {
 pacienteRouter.post('/', authMiddleware, permitirApenas('admin', 'medico'), createPaciente);
 pacienteRouter.get('/', authMiddleware, permitirApenas('admin', 'medico', 'familiar'), getPacientes);
 pacienteRouter.put('/:id', authMiddleware, permitirApenas('admin', 'medico'), editPaciente);
+pacienteRouter.delete('/:id', authMiddleware, permitirApenas('admin', 'medico'), deletPacient);
+
 
 export default pacienteRouter;

@@ -3,17 +3,18 @@ import { usePacientes } from '../../hooks/usePacientes';
 import { pacienteService } from '../../services/paciente.service';
 import { useAuth } from '../../context/context';
 import { toast } from 'react-toastify';
-import { 
-  Users, 
-  UserPlus, 
-  Search, 
-  MapPin, 
-  Phone, 
-  CreditCard, 
-  Edit2, 
+import {
+  Users,
+  UserPlus,
+  Search,
+  MapPin,
+  Phone,
+  CreditCard,
+  Edit2,
   X,
   Plus,
-  Loader2
+  Loader2,
+  Trash
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -25,8 +26,11 @@ const Pacientes = () => {
 
   // Modal States
   const [showModal, setShowModal] = useState(false);
+  const [showModalDelete, setShowModalDelete] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [deletMode, setIsDeletMode] = useState(false);
+  const [deletId, setDeletId] = useState(null);
 
   // Form Fields
   const [nome, setNome] = useState('');
@@ -51,6 +55,12 @@ const Pacientes = () => {
     setTelefone('');
     setShowModal(true);
   };
+
+  const openExcluirModal = (paciente) => {
+    setIsDeletMode(true);
+    setShowModalDelete(true);
+    setDeletId(paciente.id)
+  }
 
   const openEditModal = (paciente) => {
     setIsEditMode(true);
@@ -85,6 +95,29 @@ const Pacientes = () => {
     }
   };
 
+  const handleDeleteSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      if (deletMode) {
+        await pacienteService.deletePaciente(deletId);
+        toast.success('Cadastro do residente deletado com sucesso!');
+      } else {
+        toast.success('Erro ao deletar cadastro de residente!');
+      }
+
+      setShowModal(false);
+      setShowModalDelete(false);
+      refetch();
+    } catch (err) {
+      console.error(err);
+      const errMsg = err.response?.data?.message || 'Falha ao deletar dados do residente.';
+      toast.error(errMsg);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!nome || !cpf || !endereco || !telefone) {
@@ -97,11 +130,15 @@ const Pacientes = () => {
       if (isEditMode) {
         await pacienteService.editPaciente(editingId, { nome, cpf, endereco, telefone });
         toast.success('Cadastro do residente atualizado com sucesso!');
+      } else if (deletMode) {
+        await pacienteService.deletePaciente(deletId);
+        toast.success('Cadastro do residente deletado com sucesso!');
       } else {
         await pacienteService.createPaciente({ nome, cpf, endereco, telefone });
         toast.success('Residente cadastrado com sucesso!');
       }
       setShowModal(false);
+      setShowModalDelete(false);
       refetch();
     } catch (err) {
       console.error(err);
@@ -114,8 +151,8 @@ const Pacientes = () => {
 
   // Filter patients by name or CPF
   const filteredPacientes = pacientes.filter(p =>
-    p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.cpf.includes(searchTerm)
+    String(p.nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(p.cpf || '').includes(searchTerm)
   );
 
   return (
@@ -170,8 +207,8 @@ const Pacientes = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPacientes.map((paciente) => (
-            <div 
-              key={paciente.id} 
+            <div
+              key={paciente.id}
               className="bg-white/70 border border-slate-200/85 hover:border-slate-300 rounded-2xl p-6 shadow-sm hover:shadow transition-all duration-300 relative group flex flex-col justify-between"
             >
               {/* Header block with actions */}
@@ -184,14 +221,24 @@ const Pacientes = () => {
                     ID: #{paciente.id}
                   </span>
                 </div>
-                
-                <button
-                  onClick={() => openEditModal(paciente)}
-                  className="p-2 rounded-lg border border-slate-100 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-colors duration-200 cursor-pointer"
-                  title="Editar cadastro"
-                >
-                  <Edit2 className="h-3.5 w-3.5" />
-                </button>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => openExcluirModal(paciente)}
+                    className="p-2 rounded-lg border border-slate-100 bg-red-100 hover:bg-white hover:text-red-600 hover:border-red-100 transition-colors duration-200 cursor-pointer"
+                    title="Excluir cadastro"
+                  >
+                    <Trash className="h-3.5 w-3.5" />
+                  </button>
+
+                  <button
+                    onClick={() => openEditModal(paciente)}
+                    className="p-2 rounded-lg border border-slate-100 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-colors duration-200 cursor-pointer"
+                    title="Editar cadastro"
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* Data blocks */}
@@ -219,7 +266,7 @@ const Pacientes = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative animate-scale-up">
             {/* Modal Close */}
-            <button 
+            <button
               onClick={() => setShowModal(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer"
             >
@@ -291,6 +338,45 @@ const Pacientes = () => {
                   className="shadow-md shadow-blue-500/10 cursor-pointer"
                 >
                   {isEditMode ? 'Salvar Alterações' : 'Cadastrar Residente'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showModalDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative animate-scale-up">
+            {/* Modal Close */}
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <h3 className="flex justify-center text-lg font-bold text-slate-900 mb-6">
+              Deseja deletar residente?
+            </h3>
+
+            <form onSubmit={handleDeleteSubmit} className="flex justify-center gap-100 ">
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
+                <Button
+                  onClick={() => setShowModalDelete(false)}
+                  variant="outline"
+                  className="cursor-pointer"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="danger"
+                  loading={submitting}
+                  className="shadow-md shadow-red-500/10 cursor-pointer"
+                >
+                  Deletar resitente
                 </Button>
               </div>
             </form>

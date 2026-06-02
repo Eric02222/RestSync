@@ -56,6 +56,7 @@ const Historico = () => {
             <History className="mr-3 h-6 w-6 text-blue-600" />
             Histórico Clínico
           </h2>
+          
           <p className="text-xs text-slate-500 font-semibold mt-1">
             Consulte a evolução temporal completa e os relatórios de medições dos residentes
           </p>

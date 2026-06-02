@@ -27,5 +27,11 @@ export const pacienteService = {
       cpf: sanitizedCpf
     });
     return response.data;
+  },
+
+  async deletePaciente(id) {
+    const response = await api.delete(`/pacientes/${id}`);
+    return response.message;
   }
 };
+
