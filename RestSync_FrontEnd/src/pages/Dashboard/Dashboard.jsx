@@ -15,7 +15,8 @@ import {
   PlusCircle, 
   AlertCircle,
   HelpCircle,
-  Play
+  Play,
+  Star
 } from 'lucide-react';
 
 // Components
@@ -25,6 +26,8 @@ import VitalsChart from '../../components/charts/VitalsChart';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import ExecutiveSummary from '../../components/dashboard/ExecutiveSummary';
+import FuneralModal from '../../components/ui/FuneralModal';
+import { useFavorites } from '../../hooks/useFavorites';
 
 
 const Dashboard = () => {
@@ -34,6 +37,14 @@ const Dashboard = () => {
   const { pacientes, loading: loadingPacientes, refetch: refetchPacientes } = usePacientes();
   const [selectedPacienteId, setSelectedPacienteId] = useState('');
   
+  const {
+    favoriteResidents,
+    toggleResidentFavorite,
+    isResidentFavorite,
+    toggleVitalFavorite,
+    isVitalFavorite,
+  } = useFavorites();
+
   // Vitals custom hook for the active resident
   const {
     historico,
@@ -47,6 +58,7 @@ const Dashboard = () => {
 
   // Simulation Form States
   const [showSimulator, setShowSimulator] = useState(false);
+  const [showFuneralModal, setShowFuneralModal] = useState(false);
   const [simFc, setSimFc] = useState('75');
   const [simTemp, setSimTemp] = useState('36.5');
   const [simPa, setSimPa] = useState('120/80');
@@ -55,11 +67,21 @@ const Dashboard = () => {
   // Select the first patient automatically on load
   useEffect(() => {
     if (pacientes.length > 0 && !selectedPacienteId) {
-      setSelectedPacienteId(pacientes[0].id);
+      // Find the first favorite resident if exists
+      const firstFav = pacientes.find(p => favoriteResidents.includes(p.id));
+      setSelectedPacienteId(firstFav ? firstFav.id : pacientes[0].id);
     }
-  }, [pacientes, selectedPacienteId]);
+  }, [pacientes, selectedPacienteId, favoriteResidents]);
 
   const selectedPaciente = pacientes.find(p => p.id === parseInt(selectedPacienteId));
+
+  const sortedPacientes = [...pacientes].sort((a, b) => {
+    const aFav = isResidentFavorite(a.id);
+    const bFav = isResidentFavorite(b.id);
+    if (aFav && !bFav) return -1;
+    if (!aFav && bFav) return 1;
+    return a.nome.localeCompare(b.nome);
+  });
 
   const handleRefresh = async () => {
     toast.info('Atualizando dados vitais...');
@@ -101,8 +123,12 @@ const Dashboard = () => {
       toast.success('Sinal vital registrado! KPIs e Alertas foram atualizados.');
       setShowSimulator(false);
       await refetchVitals();
-      if (parseInt(simFc, 10) > 120 || parseFloat(simTemp) >= 38) {
-        setTimeout(() => navigate('/alertas'), 800);
+
+      // Easter Egg Trigger: Extreme vitals check
+      if (fcVal >= 250 || tempVal >= 45 || (fcVal <= 10 && fcVal > 0)) {
+        setTimeout(() => setShowFuneralModal(true), 1000);
+      } else if (parseInt(simFc, 10) > 120 || parseFloat(simTemp) >= 38) {
+        setTimeout(() => navigate('/dashboard'), 800);
       }
     } catch (err) {
       console.error(err);
@@ -126,6 +152,10 @@ const Dashboard = () => {
       setSimFc('132');
       setSimTemp('39.1');
       setSimPa('155/95');
+    } else if (type === 'funeral') {
+      setSimFc('300');
+      setSimTemp('48.5');
+      setSimPa('0/0');
     }
   };
 
@@ -138,14 +168,28 @@ const Dashboard = () => {
 
       {/* Greeting Banner */}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/70 border border-slate-200/85 p-6 rounded-2xl shadow-sm backdrop-blur-sm">
-        <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            Painel de Monitoramento
-          </h2>
-          <p className="text-xs text-slate-500 font-semibold mt-1">
-            Olá, <span className="text-blue-600 capitalize">{user?.nome}</span> • Acompanhamento em tempo real (atualização automática a cada 30s)
-          </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/70 dark:bg-slate-900/70 border border-slate-200/85 dark:border-slate-800 p-6 rounded-2xl shadow-sm backdrop-blur-sm transition-colors duration-300">
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <button
+              onClick={() => selectedPacienteId && toggleResidentFavorite(selectedPacienteId)}
+              className={`p-2.5 rounded-xl border transition-all duration-300 ${
+                isResidentFavorite(selectedPacienteId)
+                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-500 shadow-sm shadow-amber-200/20'
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 hover:text-amber-400 hover:border-amber-100'
+              }`}
+            >
+              <Star className={`h-6 w-6 ${isResidentFavorite(selectedPacienteId) ? 'fill-current' : ''}`} />
+            </button>
+          </div>
+          <div>
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Painel de Monitoramento
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+              Olá, <span className="text-blue-600 dark:text-blue-400 capitalize">{user?.nome}</span> • Acompanhamento em tempo real (atualização automática a cada 30s)
+            </p>
+          </div>
         </div>
 
         {/* Toolbar Controls */}
@@ -155,14 +199,14 @@ const Dashboard = () => {
             <select
               value={selectedPacienteId}
               onChange={(e) => setSelectedPacienteId(e.target.value)}
-              className="block rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200 pr-8 cursor-pointer"
+              className="block rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200 pr-8 cursor-pointer"
             >
               {pacientes.length === 0 ? (
                 <option value="">Nenhum residente cadastrado</option>
               ) : (
-                pacientes.map((p) => (
+                sortedPacientes.map((p) => (
                   <option key={p.id} value={p.id}>
-                    Residente: {p.nome}
+                    {isResidentFavorite(p.id) ? '⭐ ' : ''}Residente: {p.nome}
                   </option>
                 ))
               )}
@@ -173,7 +217,7 @@ const Dashboard = () => {
           <Button
             onClick={handleRefresh}
             variant="outline"
-            className="flex items-center text-xs py-2 px-3 hover:bg-slate-100 cursor-pointer"
+            className="flex items-center text-xs py-2 px-3 hover:bg-slate-100 dark:hover:bg-slate-800 dark:border-slate-800 cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loadingPacientes || loadingVitals ? 'animate-spin' : ''}`} />
           </Button>
@@ -185,7 +229,7 @@ const Dashboard = () => {
                 setShowSimulator(true);
               }}
               variant="primary"
-              className="flex items-center text-xs py-2.5 px-4 shadow-md shadow-blue-500/10 cursor-pointer"
+              className="flex items-center text-xs py-2.5 px-4 shadow-md shadow-blue-500/10 dark:shadow-blue-900/20 cursor-pointer"
             >
               <Play className="mr-1.5 h-3.5 w-3.5" />
               Simular Dispositivo
@@ -228,6 +272,12 @@ const Dashboard = () => {
               className="px-3 py-1 rounded bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-semibold"
             >
               Preset Crítico
+            </button>
+            <button
+              onClick={() => applyPreset('funeral')}
+              className="px-3 py-1 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30 text-xs font-semibold"
+            >
+              Preset Funeral
             </button>
           </div>
 
@@ -285,10 +335,10 @@ const Dashboard = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         </div>
       ) : pacientes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 bg-white/70 border border-slate-200/80 rounded-2xl shadow-sm text-center">
+        <div className="flex flex-col items-center justify-center p-12 bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm text-center transition-colors duration-300">
           <AlertCircle className="h-12 w-12 text-slate-400 mb-4" />
-          <h3 className="text-lg font-bold text-slate-800">Nenhum residente disponível</h3>
-          <p className="text-sm text-slate-500 mt-2 max-w-sm">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white">Nenhum residente disponível</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm">
             {user?.tipo_usuario === 'familiar'
               ? 'Sua conta ainda não está vinculada a um residente. Solicite o vínculo à equipe da casa de repouso.'
               : 'Cadastre o primeiro residente para iniciar o monitoramento.'}
@@ -297,7 +347,7 @@ const Dashboard = () => {
             <Button
               onClick={() => navigate('/pacientes')}
               variant="primary"
-              className="mt-6 shadow-md shadow-blue-500/10 cursor-pointer"
+              className="mt-6 shadow-md shadow-blue-500/10 dark:shadow-blue-900/20 cursor-pointer"
             >
               Ir para Residentes
             </Button>
@@ -317,6 +367,8 @@ const Dashboard = () => {
               unit="bpm"
               status={getHeartRateStatus(latestVitals?.frequencia_cardiaca)}
               icon={Heart}
+              isFavorite={isVitalFavorite('fc')}
+              onToggleFavorite={() => toggleVitalFavorite('fc')}
             />
 
             <MetricCard
@@ -325,6 +377,8 @@ const Dashboard = () => {
               unit="°C"
               status={getTemperatureStatus(latestVitals?.temperatura)}
               icon={Thermometer}
+              isFavorite={isVitalFavorite('temp')}
+              onToggleFavorite={() => toggleVitalFavorite('temp')}
             />
 
             <MetricCard
@@ -333,6 +387,8 @@ const Dashboard = () => {
               unit="mmHg"
               status="normal" // Simple fallback
               icon={Activity}
+              isFavorite={isVitalFavorite('pa')}
+              onToggleFavorite={() => toggleVitalFavorite('pa')}
             />
 
             <MetricCard
@@ -341,6 +397,8 @@ const Dashboard = () => {
               unit=""
               status="normal"
               icon={Wind}
+              isFavorite={isVitalFavorite('spo2')}
+              onToggleFavorite={() => toggleVitalFavorite('spo2')}
             />
           </div>
 
@@ -352,20 +410,20 @@ const Dashboard = () => {
             </div>
 
             {/* Alerts Queue Area */}
-            <div className="lg:col-span-4 flex flex-col h-full bg-white/70 border border-slate-200/80 rounded-2xl p-6 shadow-sm backdrop-blur-sm">
+            <div className="lg:col-span-4 flex flex-col h-full bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm backdrop-blur-sm transition-colors duration-300">
               <div className="mb-4">
-                <h3 className="text-base font-bold text-slate-900 leading-none">Notificações e Anomalias</h3>
-                <p className="text-xs font-medium text-slate-500 mt-1">Status calculados em tempo real</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-none">Notificações e Anomalias</h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Status calculados em tempo real</p>
               </div>
 
               <div className="flex-1 overflow-y-auto space-y-3 max-h-[268px] pr-1">
                 {anomalies.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12 text-center">
-                    <div className="h-10 w-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-3">
+                    <div className="h-10 w-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3">
                       <Wind className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-semibold text-slate-700">Estado Clínico Estável</span>
-                    <p className="text-[10px] text-slate-500 mt-1">Nenhuma anomalia detectada no histórico recente.</p>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Estado Clínico Estável</span>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">Nenhuma anomalia detectada no histórico recente.</p>
                   </div>
                 ) : (
                   anomalies.map((anomaly, idx) => (
@@ -383,6 +441,12 @@ const Dashboard = () => {
           </div>
         </>
       )}
+
+      {/* Funeral Easter Egg Modal */}
+      <FuneralModal 
+        isOpen={showFuneralModal} 
+        onClose={() => setShowFuneralModal(false)} 
+      />
     </div>
   );
 };

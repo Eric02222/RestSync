@@ -73,33 +73,33 @@ const ExecutiveSummary = ({ pacientes }) => {
       label: 'Total de Residentes',
       value: total,
       icon: Users,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50 border-blue-100',
-      iconBg: 'bg-blue-100 text-blue-600',
+      color: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30',
+      iconBg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
     },
     {
       label: 'Monitorados Ativos',
       value: monitorados,
       icon: Activity,
-      color: 'text-violet-600',
-      bg: 'bg-violet-50 border-violet-100',
-      iconBg: 'bg-violet-100 text-violet-600',
+      color: 'text-violet-600 dark:text-violet-400',
+      bg: 'bg-violet-50/50 dark:bg-violet-900/10 border-violet-100 dark:border-violet-900/30',
+      iconBg: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400',
     },
     {
       label: 'Alertas Ativos',
       value: observacao + criticos,
       icon: AlertTriangle,
-      color: (observacao + criticos) > 0 ? 'text-amber-600' : 'text-slate-500',
-      bg: (observacao + criticos) > 0 ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100',
-      iconBg: (observacao + criticos) > 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500',
+      color: (observacao + criticos) > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400',
+      bg: (observacao + criticos) > 0 ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30' : 'bg-slate-50/50 dark:bg-slate-800/10 border-slate-100 dark:border-slate-800/30',
+      iconBg: (observacao + criticos) > 0 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
     },
     {
       label: 'Última Atualização',
       value: formatTime(lastUpdate),
       icon: Clock,
-      color: 'text-slate-600',
-      bg: 'bg-slate-50 border-slate-100',
-      iconBg: 'bg-slate-100 text-slate-600',
+      color: 'text-slate-600 dark:text-slate-400',
+      bg: 'bg-slate-50/50 dark:bg-slate-800/10 border-slate-100 dark:border-slate-800/30',
+      iconBg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
       isTime: true,
     },
   ];
@@ -118,7 +118,7 @@ const ExecutiveSummary = ({ pacientes }) => {
                 <p className={`text-xl font-extrabold leading-none ${m.color} ${m.isTime ? 'text-sm' : ''}`}>
                   {loading && !m.isTime ? '—' : m.value}
                 </p>
-                <p className="text-[10px] font-semibold text-slate-500 mt-1 leading-tight">{m.label}</p>
+                <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1 leading-tight">{m.label}</p>
               </div>
             </div>
           );
@@ -127,31 +127,31 @@ const ExecutiveSummary = ({ pacientes }) => {
 
       {total > 0 && (
         <div className="grid grid-cols-3 gap-4">
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 flex-shrink-0">
-              <CheckCircle className="h-5 w-5 text-emerald-600" />
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex-shrink-0">
+              <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-emerald-700">{loading ? '—' : estaveis}</p>
-              <p className="text-[10px] font-bold text-emerald-600 mt-0.5">Estáveis</p>
+              <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">{loading ? '—' : estaveis}</p>
+              <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 mt-0.5">Estáveis</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-100">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 flex-shrink-0">
-              <Eye className="h-5 w-5 text-amber-600" />
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/30 flex-shrink-0">
+              <Eye className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-amber-700">{loading ? '—' : observacao}</p>
-              <p className="text-[10px] font-bold text-amber-600 mt-0.5">Em Observação</p>
+              <p className="text-2xl font-extrabold text-amber-700 dark:text-amber-400">{loading ? '—' : observacao}</p>
+              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-500 mt-0.5">Em Observação</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-100">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 flex-shrink-0">
-              <XCircle className="h-5 w-5 text-red-600" />
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/30 flex-shrink-0">
+              <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-red-700">{loading ? '—' : criticos}</p>
-              <p className="text-[10px] font-bold text-red-600 mt-0.5">Críticos</p>
+              <p className="text-2xl font-extrabold text-red-700 dark:text-red-400">{loading ? '—' : criticos}</p>
+              <p className="text-[10px] font-bold text-red-600 dark:text-red-500 mt-0.5">Críticos</p>
             </div>
           </div>
         </div>

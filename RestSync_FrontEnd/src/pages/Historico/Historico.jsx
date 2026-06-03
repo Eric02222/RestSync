@@ -52,14 +52,14 @@ const Historico = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/70 border border-slate-200/80 p-6 rounded-2xl shadow-sm backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-6 rounded-2xl shadow-sm backdrop-blur-sm transition-colors duration-300">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center">
-            <History className="mr-3 h-6 w-6 text-blue-600" />
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center">
+            <History className="mr-3 h-6 w-6 text-blue-600 dark:text-blue-400" />
             Histórico Clínico
           </h2>
           
-          <p className="text-xs text-slate-500 font-semibold mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
             Consulte a evolução temporal completa e os relatórios de medições dos residentes
           </p>
         </div>
@@ -69,7 +69,7 @@ const Historico = () => {
           <select
             value={selectedPacienteId}
             onChange={(e) => setSelectedPacienteId(e.target.value)}
-            className="block rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200 pr-8 cursor-pointer"
+            className="block rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-200 pr-8 cursor-pointer"
           >
             {pacientes.length === 0 ? (
               <option value="">Nenhum residente cadastrado</option>
@@ -85,9 +85,9 @@ const Historico = () => {
       </div>
 
       {pacientes.length === 0 ? (
-        <div className="bg-white/70 border border-slate-200/80 rounded-2xl p-12 text-center shadow-sm">
+        <div className="bg-white/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-12 text-center shadow-sm">
           <History className="h-10 w-10 text-slate-400 mx-auto mb-4" />
-          <h3 className="text-sm font-bold text-slate-700">Sem registros de histórico</h3>
+          <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Sem registros de histórico</h3>
           <p className="text-xs text-slate-400 mt-1">
             {user?.tipo_usuario === 'familiar'
               ? 'Nenhum residente vinculado à sua conta. Solicite o acesso à equipe da casa de repouso.'
@@ -96,7 +96,7 @@ const Historico = () => {
         </div>
       ) : !selectedPacienteId ? (
         <div className="flex justify-center items-center h-48">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
         </div>
       ) : (
         <>
@@ -106,11 +106,11 @@ const Historico = () => {
           </div>
 
           {/* Historical Data Table List */}
-          <div className="bg-white/70 border border-slate-200/85 rounded-2xl shadow-sm overflow-hidden backdrop-blur-sm">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+          <div className="bg-white/70 dark:bg-slate-900/70 border border-slate-200/85 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden backdrop-blur-sm transition-colors duration-300">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div>
-                <h3 className="text-base font-bold text-slate-900 leading-none">Registros de Sinais Vitais</h3>
-                <p className="text-xs font-medium text-slate-500 mt-1">Lista completa das últimas medições do residente</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-none">Registros de Sinais Vitais</h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Lista completa das últimas medições do residente</p>
               </div>
               <Badge variant="secondary">
                 {historico.length} medições
@@ -119,7 +119,7 @@ const Historico = () => {
 
             {loadingVitals && historico.length === 0 ? (
               <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />
               </div>
             ) : historico.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-sm">
@@ -129,7 +129,7 @@ const Historico = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/75 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                    <tr className="bg-slate-50/75 dark:bg-slate-800/50 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                       <th className="px-6 py-4">Data e Hora</th>
                       <th className="px-6 py-4">Frequência Cardíaca</th>
                       <th className="px-6 py-4">Temperatura</th>
@@ -137,20 +137,20 @@ const Historico = () => {
                       <th className="px-6 py-4">Oxigenação (SpO2)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100/60 text-xs font-semibold text-slate-700">
+                  <tbody className="divide-y divide-slate-100/60 dark:divide-slate-800/60 text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {historico.map((reading) => {
                       const fcStatus = getHeartRateStatus(reading.frequencia_cardiaca);
                       const tempStatus = getTemperatureStatus(reading.temperatura);
 
                       return (
-                        <tr key={reading.id} className="hover:bg-slate-50/50 transition-colors duration-150">
+                        <tr key={reading.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors duration-150">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center space-x-3">
-                              <div className="flex items-center text-slate-400">
+                              <div className="flex items-center text-slate-400 dark:text-slate-500">
                                 <Calendar className="h-3.5 w-3.5 mr-1" />
                                 <span>{formatDate(reading.data)}</span>
                               </div>
-                              <div className="flex items-center text-slate-400">
+                              <div className="flex items-center text-slate-400 dark:text-slate-500">
                                 <Clock className="h-3.5 w-3.5 mr-1" />
                                 <span>{formatTime(reading.hora)}</span>
                               </div>
@@ -158,8 +158,8 @@ const Historico = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center space-x-2.5">
-                              <Heart className="h-3.5 w-3.5 text-slate-400" />
-                              <span className="text-slate-900">{reading.frequencia_cardiaca || '--'} bpm</span>
+                              <Heart className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                              <span className="text-slate-900 dark:text-white">{reading.frequencia_cardiaca || '--'} bpm</span>
                               <Badge 
                                 variant={
                                   fcStatus === 'critical' ? 'danger' :
@@ -173,8 +173,8 @@ const Historico = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center space-x-2.5">
-                              <Thermometer className="h-3.5 w-3.5 text-slate-400" />
-                              <span className="text-slate-900">
+                              <Thermometer className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                              <span className="text-slate-900 dark:text-white">
                                 {reading.temperatura ? `${parseFloat(reading.temperatura).toFixed(1)} °C` : '--'}
                               </span>
                               <Badge 
@@ -190,14 +190,14 @@ const Historico = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center space-x-2.5">
-                              <Activity className="h-3.5 w-3.5 text-slate-400" />
-                              <span className="text-slate-900">{reading.pressao_arterial || '--'} mmHg</span>
+                              <Activity className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                              <span className="text-slate-900 dark:text-white">{reading.pressao_arterial || '--'} mmHg</span>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center space-x-2.5">
-                              <Wind className="h-3.5 w-3.5 text-slate-400" />
-                              <span className="text-slate-900">98%</span>
+                              <Wind className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                              <span className="text-slate-900 dark:text-white">98%</span>
                               <Badge variant="success">normal</Badge>
                             </div>
                           </td>
